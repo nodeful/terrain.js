@@ -12,6 +12,7 @@
         }
     </style>
 </head>
+
 <body>
     <script src="js/three.min.js"></script>
     <script type="text/javascript" src="js/dat.gui.min.js"></script>
@@ -42,42 +43,42 @@
         var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
          scene.add(skyBox);
 
-        
+
         scene.fog = new THREE.Fog( 0x7EC0EE, 1000,3000);
 
-      
-       
-        
+
+
+
 
         var level;
         controls.setPosRot(new THREE.Vector3(0, 1000, 0), -Math.PI/4);
         var generateLevel = function(){
-         
-            
+
+
             octres = chunkNumber*2;
             level = new Level(res, space, chunkNumber, noise);
             scene.add(level.getObject());
             //bio = new Biome(chunkNumber);
             //scene.add(bio.getObject());
-          
+
         }
 
         generateLevel();
 
         var gui = new dat.GUI();
 
-        var parameters = 
+        var parameters =
         {
             Resolution: res,
-            'Chunk Noise': noise, 
-            'Size': chunkNumber, 
+            'Chunk Noise': noise,
+            'Size': chunkNumber,
             Scale: space,
-            reset: function() { 
-                scene.remove(level.getObject()); generateLevel(); 
-                controls.getObject().position.x = 0; 
+            reset: function() {
+                scene.remove(level.getObject()); generateLevel();
+                controls.getObject().position.x = 0;
                 controls.getObject().position.z = 0;
             }
-                
+
         };
 
         var folderBigOctave = gui.addFolder('Terrain');
@@ -105,7 +106,7 @@
             var delta = clock.getDelta();
             controls.update();
             level.updateLoc(controls.getObject().position);
-            
+
             skyBox.position.x = controls.getObject().position.x;
             skyBox.position.z = controls.getObject().position.z;
             skyBox.position.y = controls.getObject().position.y;
@@ -113,7 +114,7 @@
             renderer.render(scene, camera);
         };
         render();
-        
+
 
     </script>
     <div id="desc" style="position: relative; margin-top: 200px; float: right;  width: 280px;  height: 100%; background-color: #3d3d3d">
