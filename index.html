@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Terrain Gen</title>
+    <style>
+        body{margin: 0; background-color: #1d1d1d;}
+        canvas {width: 200px; height:100px; position: fixed; }
+        p{
+	       color: white;
+	       font-family: Arial;
+        }
+    </style>
+</head>
+<body>
+    <script src="js/three.min.js"></script>
+    <script type="text/javascript" src="js/dat.gui.min.js"></script>
+    <script src="js/control.js"></script>
+    <script src="js/diamondsquare.js"></script>
+    <script src="js/chunk.js"></script>
+    <script src="js/level.js"></script>
+    <script src="js/biome.js"></script>
+    <script>
+        var res =16;
+        var noise = 400;
+        var chunkNumber = 8;
+        var space = 700;
+
+        var clock = new THREE.Clock();
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(50, window.innerWidth*0.8/window.innerHeight, 0.1, 100000);
+        var controls = new FlyControls(camera, noise);
+
+        scene.add(controls.getObject());
+        var renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        var skyBoxGeometry = new THREE.BoxGeometry( 10000, 100000, 10000 );
+        var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x7EC0EE, side: THREE.BackSide } );
+        var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+         scene.add(skyBox);
+
+        
+        scene.fog = new THREE.Fog( 0x7EC0EE, 1000,3000);
+
+      
+       
+        
+
+        var level;
+        controls.setPosRot(new THREE.Vector3(0, 1000, 0), -Math.PI/4);
+        var generateLevel = function(){
+         
+            
+            octres = chunkNumber*2;
+            level = new Level(res, space, chunkNumber, noise);
+            scene.add(level.getObject());
+            //bio = new Biome(chunkNumber);
+            //scene.add(bio.getObject());
+          
+        }
+
+        generateLevel();
+
+        var gui = new dat.GUI();
+
+        var parameters = 
+        {
+            Resolution: res,
+            'Chunk Noise': noise, 
+            'Size': chunkNumber, 
+            Scale: space,
+            reset: function() { 
+                scene.remove(level.getObject()); generateLevel(); 
+                controls.getObject().position.x = 0; 
+                controls.getObject().position.z = 0;
+            }
+                
+        };
+
+        var folderBigOctave = gui.addFolder('Terrain');
+        var ChunkN = folderBigOctave.add(parameters, 'Size',[1,2,4,8,16,32,64]).listen();
+        var Scale = folderBigOctave.add(parameters, 'Scale').min(100).max(2000).step(1).listen();
+        ChunkN.onChange(function(value){chunkNumber = parseInt(value);});
+        Scale.onChange(function(value){ space = value;})
+        folderBigOctave.open();
+
+        var folderSmallOctave = gui.addFolder('Chunks');
+        var chunkRes = folderSmallOctave.add(parameters, 'Resolution', [2,4,8,16,32,64,128]).listen();
+        var chunkNoise = folderSmallOctave.add(parameters, 'Chunk Noise').min(0).max(1000).step(1).listen();
+        chunkRes.onChange(function(value){res = parseInt(value);});
+        chunkNoise.onChange(function(value){noise = value;});
+        folderSmallOctave.open();
+
+
+
+        gui.add(parameters, 'reset').name("Regenerate");
+
+        gui.open();
+
+        var render = function(){
+            requestAnimationFrame(render)
+            var delta = clock.getDelta();
+            controls.update();
+            level.updateLoc(controls.getObject().position);
+            
+            skyBox.position.x = controls.getObject().position.x;
+            skyBox.position.z = controls.getObject().position.z;
+            skyBox.position.y = controls.getObject().position.y;
+            skyBox.rotation.y = controls.getObject().rotation.y;
+            renderer.render(scene, camera);
+        };
+        render();
+        
+
+    </script>
+    <div id="desc" style="position: relative; margin-top: 200px; float: right;  width: 280px;  height: 100%; background-color: #3d3d3d">
+	    <div style="margin-left: 10px;">
+	    	<p style="font-size: 20px; ">About:</p>
+		    <p style="font-size: 15px; ">This is an App/Game I developed using just JavaScript and WebGL. You can read about how it is made on my website: <a href="../">BITGAPP</a><br><br></p>
+		    <p style="font-size: 20px; ">Controls:</p>
+		    <p style="font-size: 15px; ">Click inside the windows to lock your mouse cursor<br>Use the WASD keys to move<br>SPACE to ascend<br>CTRL to descend<br>ESC key to unlock your mouse cursor<br><br>Control the generator algorithm parameters in the menu above, they dramatically change the landscape!<br><br><br>Unfortunately, for now the app only works with Google Chrome and Mozilla Firefox.<br><br><br><br><br><br>All rights reserved by <a href="https://www.twitter.com/RomanBitgapp/">Romans Kisils</a></p>
+    	</div>
+    </div>
+</body>
+</html>
